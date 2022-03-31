@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions.normal import Normal
 
 
 class Conv3dBlock(nn.Module):
@@ -9,10 +10,12 @@ class Conv3dBlock(nn.Module):
         self.conv = nn.Conv3d(in_channels=inc, out_channels=outc,
                               kernel_size=ksize, stride=stride, padding=pad, bias=False)
         self.bn = nn.BatchNorm3d(outc)
-        self.relu = nn.ReLU(inplace=True)
+        self.act = nn.LeakyReLU(inplace=True, negative_slope=0.2)
+        
+        nn.init.xavier_uniform_(self.conv.weight)
 
     def forward(self, x):
-        return self.relu(self.bn(self.conv(x)))
+        return self.act(self.bn(self.conv(x)))
 
 
 class Deconv3d(nn.Module):
@@ -24,11 +27,13 @@ class Deconv3d(nn.Module):
             in_channels=inc, out_channels=outc, kernel_size=ksize, stride=stride,
             padding=pad, dilation=dilation, output_padding=0)
         self.bn = nn.BatchNorm3d(outc)
-        self.relu = nn.ReLU(inplace=True)
-        self.upsample_layer = nn.Upsample(size=output_size, mode='trilinear', align_corners=False)
+        self.act = nn.LeakyReLU(inplace=True, negative_slope=0.2)
+        self.upsample_layer = nn.Upsample(size=output_size, mode='trilinear', align_corners=True)
+
+        nn.init.xavier_uniform_(self.deconv.weight)
 
     def forward(self, x):
-        out = self.relu(self.bn(self.deconv(x)))
+        out = self.act(self.bn(self.deconv(x)))
         if out.shape[-3:] != self.output_size:
             out = self.upsample_layer(out)
         return out
@@ -37,8 +42,10 @@ class Deconv3d(nn.Module):
 class AdaptiveUpsample3d(nn.Module):
     def __init__(self, inc, outc, output_size):
         super(AdaptiveUpsample3d, self).__init__()
-        self.upsample_layer = nn.Upsample(size=output_size, mode='trilinear', align_corners=False)
+        self.upsample_layer = nn.Upsample(size=output_size, mode='trilinear', align_corners=True)
         self.conv = nn.Conv3d(inc, outc, kernel_size=1, stride=1, padding=0)
+
+        nn.init.xavier_uniform_(self.conv.weight)
 
     def forward(self, x):
         output = self.upsample_layer(x)
@@ -52,10 +59,14 @@ class DDFFusion(nn.Module):
         self.conv = nn.Conv3d(in_channels=inc, out_channels=3, kernel_size=3, stride=1, padding=1)
         self.out_shape = out_shape
 
+        self.conv.weight = nn.Parameter(Normal(0, 1e-5).sample(self.conv.weight.shape))
+        # nn.init.xavier_uniform(self.conv.weight)
+        self.conv.bias = nn.Parameter(torch.zeros(self.conv.bias.shape))
+
     def forward(self, x):
         output = self.conv(x)
         if output.shape[-3:] != self.out_shape:
-            output = F.interpolate(output, size=self.out_shape, mode='trilinear', align_corners=False)
+            output = F.interpolate(output, size=self.out_shape, mode='trilinear', align_corners=True)
         return output
 
 

@@ -1,6 +1,25 @@
 import nibabel as nib
-import numpy as np
+import numpy as np 
 
+
+def random_crop_3d(img_arr_list, patch_size):
+    '''
+    random crop for all the image arrays in the list.
+    image will be cropped from a random generated left top corner
+    the images must have the same shape
+    '''
+    img_shape = img_arr_list[0].shape
+    for i in img_arr_list:
+        assert i.shape == img_shape, "image shapes not consistent in the list"
+
+    ix, iy, iz = img_shape
+    px, py, pz = patch_size
+    
+    gx, gy, gz = np.random.randint(low=[ix-px, iy-py, iz-pz], size=3)
+    
+    return [i[gx:gx+px, gy:gy+py, gz:gz+pz] for i in img_arr_list]
+    
+    
 def center_crop():
     pass
 
@@ -9,31 +28,3 @@ def resample():
 
 def normalize(arr, method='01'):
     return (arr - np.mean(arr)) / np.std(arr)
-
-def gen_rand_affine_transform(batch_size, scale, seed=525):
-    """
-    https://github.com/DeepRegNet/DeepReg/blob/d3edf264b8685b47f1bdd9bb73aca79b1a72790b/deepreg/dataset/preprocess.py
-    :param scale: a float number between 0 and 1
-    :return: shape = (batch, 4, 3)
-    """
-
-    assert 0 <= scale <= 1
-    np.random.seed(seed)
-    noise = np.random.uniform(1 - scale, 1, [batch_size, 4, 3])  # shape = (batch, 4, 3)
-
-    # old represents four corners of a cube
-    # corresponding to the corner C G D A as shown above
-    old = np.tile(
-        [[[-1, -1, -1, 1], [-1, -1, 1, 1], [-1, 1, -1, 1], [1, -1, -1, 1]]],
-        [batch_size, 1, 1],
-    )  # shape = (batch, 4, 4)
-    new = old[:, :, :3] * noise  # shape = (batch, 4, 3)
-
-    theta = np.array(
-        [np.linalg.lstsq(old[k], new[k], rcond=-1)[0] for k in range(batch_size)]
-    )  # shape = (batch, 4, 3)
-
-    return theta
-
-def grid_affine_transform(grid, theta):
-    pass

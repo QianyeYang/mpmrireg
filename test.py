@@ -1,13 +1,14 @@
 import os
 from src.model import archs
-from src.model.Others import archs as oriArchs
+from config.config_utils import print_config
 import pickle as pkl
 import sys
-
 
 if sys.argv[1].endswith('/'):
     sys.argv[1] = sys.argv[1][:-1]
 exp_name = os.path.basename(sys.argv[1])
+project_name = os.path.basename(os.path.dirname(sys.argv[1]))
+
 print(f'evaluation... {exp_name}')
 
 if len(sys.argv) > 2:
@@ -26,35 +27,19 @@ os.environ["CUDA_VISIBLE_DEVICES"] = gpu_idx
 
 
 if __name__ == "__main__":
-    with open(os.path.join(f'./logs/{exp_name}/config.pkl'), 'rb') as f:
+    with open(os.path.join(f'./logs/{project_name}/{exp_name}/config.pkl'), 'rb') as f:
         config = pkl.load(f)
-        print(config)
+        print_config(config)
 
-    if not hasattr(config, 'fx_mod'):
-        config.fx_mod = 't2'
-    if not hasattr(config, 'test_with_affine'):
-        config.test_with_affine = 1
-    if not hasattr(config, 'test_affine_scale'):
-        config.test_affine_scale = 0.15
-    if not hasattr(config, 'test_affine_seed'):
-        config.test_affine_seed = 514
+    if not hasattr(config, 'patched'):
+        config.patched = 0
 
-    config.test_with_affine = 0
-    config.test_affine_scale = 0.1
-    
-    if config.model == "origin":
-        model = oriArchs.mpMRIReg(config)
-    elif config.model == "weakly":
-        from src.model.archs.mpMRIRegWeakSupervise import weakSuperVisionMpMRIReg
-        model = weakSuperVisionMpMRIReg(config)
-    elif config.model == "multi-task":
-        pass
-    elif config.model == "joint3":
-        model = oriArchs.joint3(config)
+    if config.project == "mpmrireg":
+        from src.model.archs.mpmrireg import mpmrireg
+        model = mpmrireg(config)
     else:
         raise NotImplementedError
 
     model.load_epoch(num_epoch = num_epoch)
-    # model.evaluation()
     model.inference()
-    print('evaluation done.')
+    print('inference done.')

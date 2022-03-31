@@ -1,5 +1,8 @@
 import torch
 import torch.nn.functional as F
+import pystrum.pynd.ndutils as nd
+import numpy as np
+
 
 def ssd(y_true, y_pred):
     return F.mse_loss(y_pred, y_true)
@@ -14,11 +17,8 @@ def binary_dice(y_true, y_pred):
     y_true = y_true >= 0.5
     y_pred = y_pred >= 0.5
     numerator = torch.sum(y_true * y_pred) * 2
-    denominator = torch.sum(y_true) + torch.sum(y_pred)
-    if numerator == 0 or denominator == 0:
-        return 0.0
-    else:
-        return numerator * 1.0 / denominator
+    denominator = torch.sum(y_true) + torch.sum(y_pred) + eps
+    return numerator * 1.0 / denominator
 
 def global_mutual_information(t1, t2):
     bin_centers = torch.linspace(0.0, 1.0, 21)
@@ -80,7 +80,7 @@ def gradient_dz(arr):
 
 
 def gradient_txyz(Txyz, fn):
-    return torch.stack([fn(Txyz[:, i, ...]) for i in [0, 1, 2]], axis=4)
+    return torch.stack([fn(Txyz[:, i, ...]) for i in [0, 1, 2]], axis=1)
 
 
 def bending_energy(ddf):
@@ -99,6 +99,31 @@ def bending_energy(ddf):
 
     return torch.mean(dTdxx ** 2 + dTdyy ** 2 + dTdzz ** 2 + 2 * dTdxy ** 2 + 2 * dTdxz ** 2 + 2 * dTdyz ** 2)
 
+def normalized_bending_energy(ddf, voxel_size, image_shape):
+    """normalize the ddf to the real physical space"""
+
+    x, y, z = image_shape
+    vx, vy, vz = voxel_size
+
+    # 1st order - the gradient is calculated with uint /1mm
+    dTdx = gradient_txyz(ddf, gradient_dx)
+    dTdy = gradient_txyz(ddf, gradient_dy)
+    dTdz = gradient_txyz(ddf, gradient_dz)
+
+    dTdx = dTdx * (x/2.0) / vx
+    dTdy = dTdy * (y/2.0) / vy
+    dTdz = dTdz * (z/2.0) / vz
+
+    # 2nd order
+    dTdxx = gradient_txyz(dTdx, gradient_dx)
+    dTdyy = gradient_txyz(dTdy, gradient_dy)
+    dTdzz = gradient_txyz(dTdz, gradient_dz)
+    dTdxy = gradient_txyz(dTdx, gradient_dy)
+    dTdyz = gradient_txyz(dTdy, gradient_dz)
+    dTdxz = gradient_txyz(dTdx, gradient_dz)
+
+    return torch.mean(dTdxx**2 + dTdyy**2 + dTdzz**2 + 2*dTdxy**2 + 2*dTdxz**2 + 2*dTdyz**2)
+
 
 def l2_gradient(ddf):
     dTdx = gradient_txyz(ddf, gradient_dx)
@@ -111,17 +136,38 @@ def mmd(x1, x2, sigmas):
     """the loss of maximum mean discrepancy."""
     x1 = torch.reshape(x1, [x1.shape[0], -1])
     x2 = torch.reshape(x2, [x2.shape[0], -1])
+    # print('x1x2shape:', x1.shape)
     diff = torch.mean(gaussian_kernel(x1, x1, sigmas))  # mean_x1x1
     diff -= 2 * torch.mean(gaussian_kernel(x1, x2, sigmas))  # mean_x1x2
     diff += torch.mean(gaussian_kernel(x2, x2, sigmas))  # mean_x2x2
+    # print('diff:', diff, diff.shape)
     return diff
 
 def gaussian_kernel(x1, x2, sigmas):
     beta = 1. / (2. * (torch.unsqueeze(sigmas, dim=1)))
+    # print('beta shape:', beta.shape)
     dist = torch.sum(torch.square(torch.unsqueeze(x1, dim=2) - torch.transpose(x2, 1, 0)), dim=1)
+    # print('dist:', dist.shape)
     dist = torch.transpose(dist, 1, 0)
     s = torch.matmul(beta, torch.reshape(dist, (1, -1)))
-    return torch.reshape(torch.sum(torch.exp(-s), dim=0), dist.shape)
+
+    k = torch.exp(-s)
+    
+    # print('k:', k, k.shape )
+
+    mmd = torch.sum(k, dim=0)
+    # print('mmd:', mmd, mmd.shape)
+    return torch.reshape(mmd, dist.shape)
+
+# def gaussian_kernel(x1, x2, sigmas):
+#     beta = 1. / (2. * (torch.unsqueeze(sigmas, dim=1)))
+#     dist = torch.sum(torch.square(torch.unsqueeze(x1, dim=2) - torch.transpose(x2, 1, 0)), dim=1)
+#     dist = torch.transpose(dist, 1, 0)
+#     s = torch.matmul(beta, torch.reshape(dist, (1, -1)))
+
+#     mmd = torch.sum(torch.exp(-s), dim=0)
+#     print('mmd:', mmd, mmd.shape )
+#     return torch.reshape(mmd, dist.shape)
 
 def compute_centroid(mask):
     assert torch.sum(mask) > 0, 'nothing find on the mask'
@@ -137,21 +183,30 @@ def centroid_distance(y_true, y_pred):
     c1 = compute_centroid(y_true)
     c2 = compute_centroid(y_pred)
     return torch.sqrt(torch.sum((c1-c2)**2))
-    
+
+
+def wBCE(output, target, weights=None):
+    '''weighted_binary_cross_entropy loss'''       
+    output = torch.clamp(output,min=1e-6,max=1-1e-6)
+
+    if weights is not None:
+        assert len(weights) == 2
+        loss = weights[1] * (target * torch.log(output)) + \
+               weights[0] * ((1 - target) * torch.log(1 - output))
+    else:
+        loss = target * torch.log(output) + (1 - target) * torch.log(1 - output)
+
+    return torch.neg(torch.mean(loss))  
 
 
 def jacobian_determinant(disp):
-    """
-    jacobian determinant of a displacement field.
-    NB: to compute the spatial gradients, we use np.gradient.
-    Parameters:
-        disp: 2D or 3D displacement field of size [*vol_shape, nb_dims], 
-              where vol_shape is of len nb_dims
-    Returns:
-        jacobian determinant (scalar)
-    """
+    '''disp shape : [b, 3, x, y, z]'''
 
     # check inputs
+    disp = torch.squeeze(disp)
+    disp = disp.permute(1,2,3,0)
+    disp = disp.cpu().numpy()
+
     volshape = disp.shape[:-1]
     nb_dims = len(volshape)
     assert len(volshape) in (2, 3), 'flow has to be 2D or 3D'

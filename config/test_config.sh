@@ -1,0 +1,1 @@
+python global_train_config.py --exp_name xxx --data_path xxxx --index_path xxxxxx --project Longitudinal --batch_size 18 --w_ssd 100
