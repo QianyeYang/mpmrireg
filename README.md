@@ -34,4 +34,4 @@ sh ./scripts/mpmrireg/[any of the bash file in it]
 ```
 python test.py ./logs/mpmrireg/05-6.pri_gmi0.15_l2n1000_sample5 [GPU-id]
 ```
-* An example is provided to demonstrate how to use our model to test on an public data set from Cancer Imaging Archive[link]. However, we still recommend our users to train/test the real world clinical data via GPUs.[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DeepRegNet/DeepReg/blob/main/docs/Intro_to_Medical_Image_Registration.ipynb)
+* An example is provided to demonstrate how to use our model to test on an public data set from Cancer Imaging Archive [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DeepRegNet/DeepReg/blob/main/docs/Intro_to_Medical_Image_Registration.ipynb). However, we still recommend our users to train/test the real world clinical data via GPUs.
