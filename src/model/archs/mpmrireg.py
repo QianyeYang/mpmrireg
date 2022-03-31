@@ -430,11 +430,12 @@ class mpmrireg(BaseArch):
     def inference(self):
         self.sub_inference(external_dataloader=self.test_loader)
 
-        self.set_external_dataloader()
-        print('-------Miami results-------')
-        self.sub_inference(external_dataloader=self.miami_loader, save_suffix='_miami')
-        print('-------CIA results-------')
-        self.sub_inference(external_dataloader=self.cia_loader, save_suffix='_cia')
+        # used for external validation
+        # self.set_external_dataloader()
+        # print('-------Miami results-------')
+        # self.sub_inference(external_dataloader=self.miami_loader, save_suffix='_miami')
+        # print('-------CIA results-------')
+        # self.sub_inference(external_dataloader=self.cia_loader, save_suffix='_cia')
         
     @torch.no_grad()
     def sub_inference(self, external_dataloader, save_suffix=''):

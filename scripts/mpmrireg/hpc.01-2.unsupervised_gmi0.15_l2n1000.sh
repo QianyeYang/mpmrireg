@@ -10,7 +10,7 @@ date
 python3 -u train.py \
 --project mpmrireg \
 --exp_name 01-2.unsupervised_gmi0.15_l2n1000 \
---data_path ../data/mpMriReg/FinalProcessed-v2/52-52-46-ldmk \
+--data_path ./data/mpmrireg \
 --method unsupervised \
 --w_l2g 1000 \
 --w_gmi 0.15 \

@@ -10,7 +10,7 @@ date
 python3 -u train.py \
 --project mpmrireg \
 --exp_name 05-6.pri_gmi0.15_l2n1000_sample5 \
---data_path ../data/mpMriReg/FinalProcessed-v2/52-52-46-ldmk \
+--data_path ./data/mpmrireg \
 --method privileged \
 --w_l2g 1000 \
 --w_gmi 0.15 \
