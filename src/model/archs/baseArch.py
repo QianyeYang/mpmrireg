@@ -23,7 +23,7 @@ class BaseArch(object):
         self.global_step = 0
         self.global_epoch = 0
         self.epoch_loss = 0
-        self.check_gpu_info()
+        # self.check_gpu_info()
 
     """define in children obj"""
     def train(self):
