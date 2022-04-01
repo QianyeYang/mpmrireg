@@ -185,6 +185,22 @@ def centroid_distance(y_true, y_pred):
     return torch.sqrt(torch.sum((c1-c2)**2))
 
 
+def compute_centroid_cpu(mask):
+    assert torch.sum(mask) > 0, 'nothing find on the mask'
+    mask = mask >= 0.5  # shape (1, 1, x, y, z)
+    mesh_points = [torch.tensor(list(range(dim))) for dim in mask.shape[2:]]
+    grid = torch.stack(torch.meshgrid(*mesh_points))  # shape:[3, x, y, z]
+    grid = grid.type(torch.FloatTensor)
+    grid = grid * mask[0]
+    return torch.sum(grid, axis=(1, 2, 3))/torch.sum(mask[0])
+
+def centroid_distance_cpu(y_true, y_pred):
+    c1 = compute_centroid_cpu(y_true)
+    c2 = compute_centroid_cpu(y_pred)
+    return torch.sqrt(torch.sum((c1-c2)**2))
+
+
+
 def wBCE(output, target, weights=None):
     '''weighted_binary_cross_entropy loss'''       
     output = torch.clamp(output,min=1e-6,max=1-1e-6)
