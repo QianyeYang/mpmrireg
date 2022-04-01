@@ -34,6 +34,6 @@ sh ./scripts/mpmrireg/[any of the bash file in it]
 ```
 python test.py ./logs/mpmrireg/05-6.pri_gmi0.15_l2n1000_sample5 [GPU-id]
 ```
-* An example is provided to demonstrate how to use our model to test on an public data set from [Cancer Imaging Archive](https://wiki.cancerimagingarchive.net/display/Public/QIN-PROSTATE-Repeatability) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13cGaVu8i0LSP-OHVz_eTp-Cfg8LxUJcy?usp=sharing). However, we still recommend our users to train/test the real world clinical data via GPUs.(Under construction)
+* An example is provided to demonstrate how to use our model to test on an public data set from [Cancer Imaging Archive](https://wiki.cancerimagingarchive.net/display/Public/QIN-PROSTATE-Repeatability) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13cGaVu8i0LSP-OHVz_eTp-Cfg8LxUJcy?usp=sharing). However, we still recommend our users to train/test the real world clinical data via GPUs.
 
 * The processed public data can be accessed [here](https://drive.google.com/file/d/15l4IBfNUTdOwQL6rY2H6ekpwfaeNIfPj/view?usp=sharing). Please maually download and unzip it under ``./data``.
