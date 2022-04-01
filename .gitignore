@@ -4,6 +4,5 @@ vis*/
 .DS_Store
 .DS_Store/
 .ipynb_checkpoints/
-logs/
 Others/rand_affine_test/
 Others/niftyreg/
