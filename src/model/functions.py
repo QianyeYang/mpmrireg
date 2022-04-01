@@ -100,7 +100,49 @@ def rand_affine_grid(img, scale=0.1, random_seed=None):
     
 
 
+def get_reference_grid3d_cpu(img, grid_size=None):
+    '''
+    return a 5d tensor of the grid, e.g.
+    img --> (b, 1, h, w, z)
+    out --> (b, 3, h, w, z)
 
+    if grid_size is not None, then return a 3d grid with the size of grid_size
+    grid_size --> (gh, gw, gz)
+    '''
+    if len(img.shape) > 3:
+        batch = img.shape[0]
+    else: 
+        batch = 1
+    
+    shape = img.shape[-3:]
+    
+    if grid_size is not None:
+        assert len(grid_size) == 3, "maybe not a 3d grid"
+        shape = grid_size
+
+    mesh_points = [torch.linspace(-1, 1, dim) for dim in shape]
+    grid = torch.stack(torch.meshgrid(*mesh_points))  # shape:[3, x, y, z]
+    grid = torch.stack([grid]*batch)  # add batch
+    grid = grid.type(torch.FloatTensor)
+    return grid
+
+def warp3d_cpu(img, ddf, ref_grid=None):
+    """
+    img: [batch, c, x, y, z]
+    new_grid: [batch, x, y, z, 3]
+    https://pytorch.org/docs/stable/generated/torch.nn.functional.grid_sample.html#torch.nn.functional.grid_sample
+    """
+
+    if ref_grid is None:
+        assert img.shape[-3:] == ddf.shape[-3:], "Shapes not consistent btw img and ddf."
+        grid = get_reference_grid3d_cpu(img)
+    else:
+        grid = ref_grid
+        
+    new_grid = grid + ddf  # [batch, 3, x, y, z]
+    new_grid = new_grid.permute(0, 2, 3, 4, 1)
+    new_grid = new_grid[..., [2, 1, 0]]
+    return F.grid_sample(img, new_grid, mode='bilinear', align_corners=False)
     
 
 
