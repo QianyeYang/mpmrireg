@@ -1,6 +1,5 @@
 import torch.utils.data as data
 import pickle as pkl
-import torchio as tio
 import os
 import torch
 import random
