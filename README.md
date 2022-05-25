@@ -1,5 +1,5 @@
 # Overview
-The source code for submitted paper "Cross-Modality Image Registration using a Training-Time Privileged Third Modality".
+The source code for the submitted paper "Cross-Modality Image Registration using a Training-Time Privileged Third Modality".
 
 
 ## Training
@@ -42,7 +42,7 @@ tool ([NBIA Data Retriever](https://wiki.cancerimagingarchive.net/display/NBIA/D
 ```
 python test.py ./logs/mpmrireg/05-6.pri_gmi0.15_l2n1000_sample5 [GPU-id]
 ```
-* An example is provided to demonstrate how to use our model to test on an public data set from the [Cancer Imaging Archive](https://wiki.cancerimagingarchive.net/display/Public/QIN-PROSTATE-Repeatability) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13cGaVu8i0LSP-OHVz_eTp-Cfg8LxUJcy?usp=sharing). To keep the simplicity of this demo and because of the data limitation, we only used a few samples from this public data set. However, the users could manually upload the rest of the data, or choose to mount their google drives to this Colab environment, if they are interested with more cases.
+* An example [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/13cGaVu8i0LSP-OHVz_eTp-Cfg8LxUJcy?usp=sharing) is provided to demonstrate how to use our model to test on an public data set from the [Cancer Imaging Archive](https://wiki.cancerimagingarchive.net/display/Public/QIN-PROSTATE-Repeatability). To keep the simplicity of this demo and because of the data limitation, we only used a few samples from this public data set. However, the users could manually upload the rest of the data, or choose to mount their google drives to this Colab environment, if they are interested with more cases.
 
-Please note that this demo is only working on CPUs. We recommend our users to train/test the real world clinical data via GPUs, in order to get faster training/testing speed.
+* Please note that this demo is only working on CPUs. We recommend our users to train/test the real world clinical data via GPUs, in order to get faster training/testing speed.
 
