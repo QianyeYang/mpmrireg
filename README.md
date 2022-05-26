@@ -6,7 +6,7 @@ The source code for the submitted paper "Cross-Modality Image Registration using
 
 * Better using virtual environment to avoid conflicts. For example:
   ```
-  conda create -n mpmrireg python=3.9
+  conda create -n mpmrireg python=3.7
   # ... after installation
 
   conda activate mpmrireg
@@ -14,6 +14,7 @@ The source code for the submitted paper "Cross-Modality Image Registration using
   cd mpmrireg
   pip install -r requirments.txt
   ```
+  This demo is tested on Ubuntu 18.04 (Nvidia GPU required), but the training/testing code should be compatible with Windows as well.
 
 ## Training
 * Please check and set up the hyper-parameters in ``./config/global_train_config.py`` and ``./config/mpmrireg_train_config.py``. Save your command line in a bash file, like those examples in ``./scripts/mpmrireg``.
@@ -50,12 +51,12 @@ sh ./scripts/mpmrireg/[any of the bash file in it]
   cd ./data
   python CIA_cleaning.py
   ``` 
-* [ITK_SNAP](http://www.itksnap.org/pmwiki/pmwiki.php) was used to manually convert the dicom format in to nifty format. The cleaned and format-converted data can be directly accessed [here]() to save some time.
-* Then use the following command line to do the preprocessing. Then the processed data will be generated to ``CIA-external-npy``.
+* [ITK_SNAP](http://www.itksnap.org/pmwiki/pmwiki.php) was used to manually convert the dicom format in to nifty format. The cleaned and format-converted data can be directly accessed [here](https://drive.google.com/file/d/1CXFLT2Bdvnjd5Zb9MmpFIknoRX1JHQPx/view?usp=sharing) to save some time. We recommend to directly use the converted data to avoid unexpectable failures, such as the conflict cause by the data update and structure adjustment on the server of the Cancer Imaging Archive. Please manually unzip the .zip file in the ``./data`` folder.
+* Then use the following command line to do the preprocessing. Then the processed data will be generated to ``./data/CIA-external-npy``.
   ```
   python CIA_preprocessing.py 
   ```
-* The preprocessed data are also provided [here](https://drive.google.com/file/d/15l4IBfNUTdOwQL6rY2H6ekpwfaeNIfPj/view?usp=sharing), if the above links are not available. For those users who want to skip the data preprocessing can also download this data set. Please manually download and unzip it under the ``./data`` folder.
+* The fully-preprocessed data are also provided [here](https://drive.google.com/file/d/15l4IBfNUTdOwQL6rY2H6ekpwfaeNIfPj/view?usp=sharing), if the original links are not available. For those users who want to skip the data preprocessing can also download via this link. Please manually download and unzip it under the ``./data`` folder.
 
 ### Inference
 * While training, a experiment folder will generated in the ``./logs/mpmrireg/``, for example ``./logs/mpmrireg/05-6.pri_gmi0.15_l2n1000_sample5``
@@ -67,3 +68,6 @@ python test.py ./logs/mpmrireg/05-6.pri_gmi0.15_l2n1000_sample5 [GPU-id]
 
 * Please note that this demo is only working on CPUs. We recommend our users to train/test the real world clinical data via GPUs, in order to get faster training/testing speed.
 
+
+## Feedbacks
+* Please be free to create issues in this repo and to let me know if there're any problems. Thanks!
