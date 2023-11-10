@@ -4,7 +4,7 @@ from config.config_utils import print_config
 import pickle as pkl
 import sys
 
-if sys.argv[1].endswith('/'):
+if sys.argv[1].endswith('/') or sys.argv[1].endswith('\\'):
     sys.argv[1] = sys.argv[1][:-1]
 exp_name = os.path.basename(sys.argv[1])
 project_name = os.path.basename(os.path.dirname(sys.argv[1]))

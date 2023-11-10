@@ -6,6 +6,7 @@ vis*/
 .ipynb_checkpoints/
 Others/rand_affine_test/
 Others/niftyreg/
+data/
 data/CIA-external-npy
 data/Cancer_Image_Archive_Selected_Data
 data/CIA_landmarks

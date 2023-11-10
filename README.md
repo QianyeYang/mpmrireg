@@ -13,6 +13,7 @@ The source code for the submitted paper "Cross-Modality Image Registration using
   git clone https://github.com/QianyeYang/mpmrireg.git
   cd mpmrireg
   pip install -r requirments.txt
+  pip install torch==1.5.1+cu101 torchvision==0.6.1+cu101 -f https://download.pytorch.org/whl/torch_stable.html
   ```
   This demo is tested on Ubuntu 18.04 (Nvidia GPU required), but the training/testing code should be compatible with Windows as well.
 

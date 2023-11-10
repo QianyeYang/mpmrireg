@@ -38,20 +38,31 @@ class mpmrireg(BaseArch):
                 )
 
     def set_dataloader(self):
-        self.train_set = dataloaders.mpMRIData(config=self.config, phase='train')
-        self.train_loader = DataLoader(self.train_set, batch_size=self.config.batch_size, shuffle=True, num_workers=4)
-        print('>>> Train set ready.')
-        self.val_set = dataloaders.mpMRIData(config=self.config, phase='val')
-        self.val_loader = DataLoader(self.val_set, batch_size=1, shuffle=False, num_workers=1, drop_last=False)
-        print('>>> Validation set ready.')
-        self.test_set = dataloaders.mpMRIData(config=self.config, phase='test')
-        self.test_loader = DataLoader(self.test_set, batch_size=1, shuffle=False, num_workers=1, drop_last=False)
-        print('>>> Holdout set ready.')
+        try:
+            self.train_set = dataloaders.mpMRIData(config=self.config, phase='train')
+            self.train_loader = DataLoader(self.train_set, batch_size=self.config.batch_size, shuffle=True, num_workers=4)
+            print('>>> Train set ready.')
+        except Exception as e:
+            print(f"train set not successfully created: {e}")
+
+        try:
+            self.val_set = dataloaders.mpMRIData(config=self.config, phase='val')
+            self.val_loader = DataLoader(self.val_set, batch_size=1, shuffle=False, num_workers=1, drop_last=False)
+            print('>>> Validation set ready.')
+        except Exception as e:
+            print(f"validation set not successfully created: {e}")
+
+        try:
+            self.test_set = dataloaders.mpMRIData(config=self.config, phase='test')
+            self.test_loader = DataLoader(self.test_set, batch_size=1, shuffle=False, num_workers=1, drop_last=False)
+            print('>>> Holdout set ready.')
+        except Exception as e:
+            print(f"holdout set not successfully created: {e}")
 
     def set_external_dataloader(self):
-        self.miami_set = dataloaders.mpMRIData(config=self.config, phase='test', external='/media/yipeng/data/data/mpMriReg/external/Miami-external-npy')
+        self.miami_set = dataloaders.mpMRIData(config=self.config, phase='test', external='./data/CIA-external-npy')
         self.miami_loader = DataLoader(self.miami_set, batch_size=1, shuffle=False, num_workers=1, drop_last=False)
-        self.cia_set = dataloaders.mpMRIData(config=self.config, phase='test', external='/media/yipeng/data/data/mpMriReg/external/CIA-external-npy')
+        self.cia_set = dataloaders.mpMRIData(config=self.config, phase='test', external='./data/CIA-external-npy')
         self.cia_loader = DataLoader(self.cia_set, batch_size=1, shuffle=False, num_workers=1, drop_last=False)
         print('>>> External set ready.')
         
@@ -428,14 +439,14 @@ class mpmrireg(BaseArch):
         
 
     def inference(self):
-        self.sub_inference(external_dataloader=self.test_loader)
+        # self.sub_inference(external_dataloader=self.test_loader)
 
         # used for external validation
-        # self.set_external_dataloader()
+        self.set_external_dataloader()
         # print('-------Miami results-------')
         # self.sub_inference(external_dataloader=self.miami_loader, save_suffix='_miami')
-        # print('-------CIA results-------')
-        # self.sub_inference(external_dataloader=self.cia_loader, save_suffix='_cia')
+        print('-------CIA results-------')
+        self.sub_inference(external_dataloader=self.cia_loader, save_suffix='_cia')
         
     @torch.no_grad()
     def sub_inference(self, external_dataloader, save_suffix=''):
@@ -450,7 +461,6 @@ class mpmrireg(BaseArch):
         tre_dict = {}
 
         dataloader = external_dataloader
-
         for idx, input_dict in enumerate(dataloader):
             fx_img, mv_img, pr_img = input_dict['t2'].cuda(), input_dict['dwi'].cuda(), input_dict['dwi_b0'].cuda()
             t2_ldmks, dwi_ldmks = input_dict['t2_ldmks'].cuda(), input_dict['dwi_ldmks'].cuda()
@@ -466,7 +476,6 @@ class mpmrireg(BaseArch):
             else:
                 print("can not recognise method")
                 raise NotImplementedError
-
             # calculate TREs and MIs 
             tmp_TREs, fx_ldmks, mv_ldmks, warped_ldmks, sub_tre_dict = self.calc_TREs(t2_ldmks, t2_ldmk_paths, dwi_ldmks, dwi_ldmk_paths, ddf)
             for key, value in tmp_TREs.items():
